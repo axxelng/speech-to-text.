@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>語音轉文字</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        #output {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            min-height: 100px;
+            font-size: 18px;
+            text-align: left;
+            width: 80%;
+            margin: 30px auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>語音轉文字</h1>
+    <p>按下「開始錄音」後，開始說話，我們會將語音轉換為文字。</p>
+    <button id="start-btn">開始錄音</button>
+    <button id="stop-btn" disabled>停止錄音</button>
+    <div id="output" placeholder="這裡會顯示轉換的文字"></div>
+
+    <script>
+        const startButton = document.getElementById('start-btn');
+        const stopButton = document.getElementById('stop-btn');
+        const outputDiv = document.getElementById('output');
+
+        let recognition;
+        try {
+            // 檢查瀏覽器是否支援 SpeechRecognition
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+        } catch (e) {
+            console.error('SpeechRecognition not supported', e);
+            alert('您的瀏覽器不支援語音識別功能，請使用支援的瀏覽器 (例如 Chrome)。');
+        }
+
+        if (recognition) {
+            recognition.lang = 'zh-TW'; // 設定語言為繁體中文
+            recognition.interimResults = true; // 開啟即時結果
+            recognition.continuous = true; // 持續偵測語音
+
+            recognition.onstart = () => {
+                outputDiv.textContent = '正在錄音中...';
+                startButton.disabled = true;
+                stopButton.disabled = false;
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                outputDiv.textContent = transcript; // 顯示轉換的文字
+            };
+
+            recognition.onerror = (event) => {
+                console.error('語音識別錯誤:', event.error);
+                alert(`語音識別發生錯誤: ${event.error}`);
+            };
+
+            recognition.onend = () => {
+                startButton.disabled = false;
+                stopButton.disabled = true;
+                if (!outputDiv.textContent) {
+                    outputDiv.textContent = '錄音結束，但未偵測到語音內容。';
+                }
+            };
+
+            // 綁定按鈕事件
+            startButton.addEventListener('click', () => {
+                recognition.start();
+            });
+
+            stopButton.addEventListener('click', () => {
+                recognition.stop();
+            });
+        }
+    </script>
+</body>
+</html>
